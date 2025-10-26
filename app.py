@@ -1,3 +1,8 @@
+from flask import Flask, session, redirect, url_for, request, render_template_string
+
+app = Flask(__name__)
+app.secret_key = "your_secret_key"
+
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'students' not in session:
@@ -160,4 +165,4 @@ def dashboard():
         </script>
     </body>
     </html>
-    """)
+   
