@@ -2,72 +2,122 @@ from flask import Flask, request, render_template_string, redirect, url_for
 
 app = Flask(__name__)
 
-# Home route: shows the form
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
         name = request.form.get('name')
-        if name:
-            return redirect(url_for('welcome', student_name=name))
-    
+        grade = request.form.get('grade')
+        year = request.form.get('year')
+        section = request.form.get('section')
+        if name and grade and year and section:
+            return redirect(url_for('welcome', name=name, grade=grade, year=year, section=section))
+
     return render_template_string("""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Student Form</title>
+        <title>Student Registration</title>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
         <style>
+            * { box-sizing: border-box; }
             body {
-                font-family: 'Poppins', sans-serif;
-                background: linear-gradient(120deg, #6a11cb, #2575fc);
-                color: white;
+                margin: 0;
                 height: 100vh;
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                overflow: hidden;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin: 0;
+                color: white;
             }
-            .form-container {
+            .wave {
+                position: absolute;
+                width: 200%;
+                height: 200%;
+                top: -50%;
+                left: -50%;
+                background: radial-gradient(circle at center, rgba(255,255,255,0.1), transparent 70%);
+                animation: rotate 15s linear infinite;
+                z-index: 0;
+            }
+            @keyframes rotate {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .card {
+                position: relative;
+                z-index: 2;
                 background: rgba(255, 255, 255, 0.15);
-                padding: 30px 40px;
-                border-radius: 15px;
-                box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+                backdrop-filter: blur(12px);
+                border-radius: 20px;
+                padding: 50px 60px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 text-align: center;
-                width: 350px;
+                animation: fadeIn 1s ease;
+                width: 400px;
+            }
+            @keyframes fadeIn {
+                from {opacity: 0; transform: translateY(20px);}
+                to {opacity: 1; transform: translateY(0);}
             }
             h1 {
-                margin-bottom: 20px;
+                margin-bottom: 25px;
+                font-size: 2em;
+                background: linear-gradient(90deg, #00f2fe, #4facfe);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
             input {
-                width: 90%;
-                padding: 10px;
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 20px;
                 border: none;
                 border-radius: 8px;
-                margin-bottom: 20px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
                 font-size: 1em;
+                text-align: center;
+                transition: box-shadow 0.3s ease, transform 0.3s ease;
+            }
+            input:focus {
+                outline: none;
+                box-shadow: 0 0 10px #00f2fe;
+                transform: scale(1.03);
+            }
+            input::placeholder {
+                color: #e0e0e0;
             }
             button {
-                background: #007bff;
-                color: white;
-                padding: 10px 20px;
+                width: 100%;
+                padding: 12px;
                 border: none;
-                border-radius: 8px;
-                cursor: pointer;
+                border-radius: 10px;
+                background: linear-gradient(45deg, #00f2fe, #4facfe);
+                color: white;
                 font-weight: bold;
-                transition: background 0.3s ease;
+                font-size: 1em;
+                cursor: pointer;
+                transition: all 0.3s ease;
             }
             button:hover {
-                background: #0056b3;
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(45deg, #4facfe, #00f2fe);
             }
         </style>
     </head>
     <body>
-        <div class="form-container">
-            <h1>🎓 Enter Student Name</h1>
+        <div class="wave"></div>
+        <div class="card">
+            <h1>🎓 Student Info</h1>
             <form method="POST">
-                <input type="text" name="name" placeholder="Enter student name" required><br>
+                <input type="text" name="name" placeholder="Enter Name" required>
+                <input type="number" name="grade" placeholder="Enter Grade" required>
+                <input type="text" name="year" placeholder="Enter Year" required>
+                <input type="text" name="section" placeholder="Enter Section" required>
                 <button type="submit">Submit</button>
             </form>
         </div>
@@ -75,10 +125,12 @@ def home():
     </html>
     """)
 
-
-# Welcome route: shows message and back button
-@app.route('/welcome/<student_name>')
-def welcome(student_name):
+@app.route('/welcome')
+def welcome():
+    name = request.args.get('name')
+    grade = request.args.get('grade')
+    year = request.args.get('year')
+    section = request.args.get('section')
     return render_template_string(f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -90,43 +142,77 @@ def welcome(student_name):
         <style>
             body {{
                 font-family: 'Poppins', sans-serif;
-                background: linear-gradient(120deg, #2575fc, #6a11cb);
-                color: white;
+                background: linear-gradient(135deg, #764ba2, #667eea);
                 height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin: 0;
                 flex-direction: column;
+                color: white;
+                margin: 0;
+                overflow: hidden;
             }}
             h1 {{
-                font-size: 2em;
-                margin-bottom: 20px;
+                font-size: 2.5em;
+                margin-bottom: 10px;
+                background: linear-gradient(90deg, #00f2fe, #4facfe);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                animation: fadeIn 1.2s ease;
+            }}
+            p {{
+                font-size: 1.2em;
+                opacity: 0;
+                animation: fadeInText 2s forwards 1s;
+            }}
+            @keyframes fadeIn {{
+                from {{opacity: 0; transform: translateY(20px);}}
+                to {{opacity: 1; transform: translateY(0);}}
+            }}
+            @keyframes fadeInText {{
+                to {{opacity: 1;}}
             }}
             button {{
-                background: #ff9800;
-                color: white;
-                padding: 10px 20px;
+                background: linear-gradient(45deg, #ff9966, #ff5e62);
                 border: none;
-                border-radius: 8px;
+                color: white;
+                padding: 12px 25px;
+                border-radius: 10px;
                 cursor: pointer;
                 font-weight: bold;
-                transition: background 0.3s ease;
+                margin-top: 30px;
+                transition: all 0.3s ease;
             }}
             button:hover {{
-                background: #e68900;
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }}
+            .wave {{
+                position: absolute;
+                width: 200%;
+                height: 200%;
+                top: -50%;
+                left: -50%;
+                background: radial-gradient(circle at center, rgba(255,255,255,0.1), transparent 70%);
+                animation: rotate 15s linear infinite;
+                z-index: 0;
+            }}
+            @keyframes rotate {{
+                0% {{ transform: rotate(0deg); }}
+                100% {{ transform: rotate(360deg); }}
             }}
         </style>
     </head>
     <body>
-        <h1>🎉 Welcome, {student_name}!</h1>
+        <div class="wave"></div>
+        <h1>🎉 Welcome, {name}!</h1>
+        <p>Grade: {grade} | Year: {year} | Section: {section}</p>
         <form action="/">
-            <button type="submit">⬅️ Back</button>
+            <button type="submit">⬅️ Back to Form</button>
         </form>
     </body>
     </html>
     """)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
