@@ -1,7 +1,171 @@
-from flask import Flask, session, redirect, url_for, request, render_template_string
+from flask import Flask, request, render_template_string, redirect, url_for, session
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+app.secret_key = "supersecretkey"  # Needed for session
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if 'students' not in session:
+        session['students'] = []
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        year = request.form.get('year')
+        section = request.form.get('section')
+
+        if name and year and section:
+            students = session.get('students', [])
+            students.append({'name': name, 'year': year, 'section': section})
+            session['students'] = students
+            return redirect(url_for('welcome', name=name))
+
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Student Registration</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                height: 100vh;
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            }
+            .card {
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(12px);
+                border-radius: 20px;
+                padding: 50px 60px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                text-align: center;
+                width: 400px;
+            }
+            h1 {
+                margin-bottom: 25px;
+                font-size: 2em;
+                background: linear-gradient(90deg, #00f2fe, #4facfe);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            input {
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 20px;
+                border: none;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                font-size: 1em;
+                text-align: center;
+                transition: box-shadow 0.3s ease, transform 0.3s ease;
+            }
+            input:focus {
+                outline: none;
+                box-shadow: 0 0 10px #00f2fe;
+                transform: scale(1.03);
+            }
+            button {
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 10px;
+                background: linear-gradient(45deg, #00f2fe, #4facfe);
+                color: white;
+                font-weight: bold;
+                font-size: 1em;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(45deg, #4facfe, #00f2fe);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>🎓 Student Info</h1>
+            <form method="POST">
+                <input type="text" name="name" placeholder="Enter Name" required>
+                <input type="text" name="year" placeholder="Enter Year" required>
+                <input type="text" name="section" placeholder="Enter Section" required>
+                <button type="submit">Submit</button>
+            </form>
+            <form action="/dashboard" style="margin-top:20px;">
+                <button type="submit">📋 Go to Dashboard</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    """)
+
+@app.route('/welcome')
+def welcome():
+    name = request.args.get('name')
+    return render_template_string(f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            body {{
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #764ba2, #667eea);
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                color: white;
+                margin: 0;
+            }}
+            h1 {{
+                font-size: 2.5em;
+                margin-bottom: 10px;
+                background: linear-gradient(90deg, #00f2fe, #4facfe);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }}
+            button {{
+                background: linear-gradient(45deg, #ff9966, #ff5e62);
+                border: none;
+                color: white;
+                padding: 12px 25px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: bold;
+                margin-top: 30px;
+                transition: all 0.3s ease;
+            }}
+            button:hover {{
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>🎉 Hi {name}, Welcome!</h1>
+        <form action="/">
+            <button type="submit">⬅️ Back to Form</button>
+        </form>
+        <form action="/dashboard" style="margin-top:10px;">
+            <button type="submit">📋 Go to Dashboard</button>
+        </form>
+    </body>
+    </html>
+    """)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
@@ -60,14 +224,6 @@ def dashboard():
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
             }}
-            input {{
-                padding: 10px;
-                border-radius: 8px;
-                border: none;
-                margin-bottom: 15px;
-                width: 300px;
-                text-align: center;
-            }}
             table {{
                 border-collapse: collapse;
                 width: 90%;
@@ -80,16 +236,12 @@ def dashboard():
             th, td {{
                 padding: 15px;
                 text-align: center;
-                cursor: pointer;
             }}
             th {{
                 background: rgba(255,255,255,0.25);
             }}
             tr:nth-child(even) {{
                 background: rgba(255,255,255,0.1);
-            }}
-            tr:hover {{
-                background: rgba(255,255,255,0.25);
             }}
             button {{
                 margin-top: 20px;
@@ -114,55 +266,107 @@ def dashboard():
     </head>
     <body>
         <h1>📋 Student Dashboard</h1>
-        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="🔍 Search by name, year or section">
-        <table id="studentTable">
-            <tr>
-                <th onclick="sortTable(0)">Name ⬍</th>
-                <th onclick="sortTable(1)">Year ⬍</th>
-                <th onclick="sortTable(2)">Section ⬍</th>
-                <th>Action</th>
-            </tr>
+        <table>
+            <tr><th>Name</th><th>Year</th><th>Section</th><th>Action</th></tr>
             {student_rows if student_rows else '<tr><td colspan="4">No students added yet</td></tr>'}
         </table>
         <form action="/" >
             <button type="submit">⬅️ Back to Form</button>
         </form>
-
-        <script>
-            // Search function
-            function searchTable() {{
-                let input = document.getElementById("searchInput");
-                let filter = input.value.toLowerCase();
-                let table = document.getElementById("studentTable");
-                let tr = table.getElementsByTagName("tr");
-                for (let i = 1; i < tr.length; i++) {{
-                    let tdArr = tr[i].getElementsByTagName("td");
-                    let found = false;
-                    for (let j = 0; j < tdArr.length - 1; j++) {{
-                        if (tdArr[j].textContent.toLowerCase().indexOf(filter) > -1) {{
-                            found = true;
-                        }}
-                    }}
-                    tr[i].style.display = found ? "" : "none";
-                }}
-            }}
-
-            // Sort function
-            function sortTable(n) {{
-                let table = document.getElementById("studentTable");
-                let rows = Array.from(table.rows).slice(1);
-                let asc = table.getAttribute("data-sort-dir") === "asc";
-                rows.sort((a, b) => {{
-                    let x = a.cells[n].textContent.toLowerCase();
-                    let y = b.cells[n].textContent.toLowerCase();
-                    if (x < y) return asc ? -1 : 1;
-                    if (x > y) return asc ? 1 : -1;
-                    return 0;
-                }});
-                for (let row of rows) table.appendChild(row);
-                table.setAttribute("data-sort-dir", asc ? "desc" : "asc");
-            }}
-        </script>
     </body>
     </html>
-   
+    """)
+
+@app.route('/edit/<int:index>', methods=['GET', 'POST'])
+def edit_student(index):
+    students = session.get('students', [])
+    if index < 0 or index >= len(students):
+        return redirect(url_for('dashboard'))
+
+    student = students[index]
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        year = request.form.get('year')
+        section = request.form.get('section')
+        if name and year and section:
+            students[index] = {'name': name, 'year': year, 'section': section}
+            session['students'] = students
+            return redirect(url_for('dashboard'))
+
+    return render_template_string(f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Edit Student</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            body {{
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #764ba2, #667eea);
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                margin: 0;
+            }}
+            .card {{
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(12px);
+                border-radius: 20px;
+                padding: 50px 60px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                text-align: center;
+                width: 400px;
+            }}
+            input {{
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 20px;
+                border: none;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                font-size: 1em;
+                text-align: center;
+            }}
+            button {{
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 10px;
+                background: linear-gradient(45deg, #00f2fe, #4facfe);
+                color: white;
+                font-weight: bold;
+                font-size: 1em;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }}
+            button:hover {{
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>✏️ Edit Student</h1>
+            <form method="POST">
+                <input type="text" name="name" placeholder="Name" value="{student['name']}" required>
+                <input type="text" name="year" placeholder="Year" value="{student['year']}" required>
+                <input type="text" name="section" placeholder="Section" value="{student['section']}" required>
+                <button type="submit">Update</button>
+            </form>
+            <form action="/dashboard" style="margin-top:10px;">
+                <button type="submit">⬅️ Back to Dashboard</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    """)
+
+if __name__ == "__main__":
+    app.run(debug=True)
