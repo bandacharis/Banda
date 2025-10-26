@@ -23,11 +23,13 @@ def home():
                 margin: 0;
                 padding: 0;
             }
+
             @keyframes gradientShift {
                 0% { background-position: 0% 50%; }
                 50% { background-position: 100% 50%; }
                 100% { background-position: 0% 50%; }
             }
+
             .container {
                 max-width: 850px;
                 margin: 60px auto;
@@ -37,14 +39,17 @@ def home():
                 backdrop-filter: blur(10px);
                 box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             }
+
             h1 {
                 font-size: 2.5em;
                 margin-bottom: 10px;
             }
+
             p.subtitle {
                 color: #e0e0e0;
                 margin-bottom: 30px;
             }
+
             .endpoint {
                 background: rgba(255,255,255,0.15);
                 border-radius: 12px;
@@ -53,6 +58,7 @@ def home():
                 text-align: left;
                 transition: all 0.3s ease;
             }
+
             .method {
                 display: inline-block;
                 padding: 5px 12px;
@@ -61,23 +67,28 @@ def home():
                 margin-right: 10px;
                 font-size: 0.9em;
             }
+
             .GET { background: #28a745; }
             .POST { background: #ff9800; }
+
             code {
                 background: rgba(0,0,0,0.3);
                 padding: 3px 6px;
                 border-radius: 5px;
                 color: #fff;
             }
+
             form {
                 text-align: left;
                 margin-top: 15px;
             }
+
             label {
                 display: block;
                 margin: 8px 0 4px;
                 font-weight: 500;
             }
+
             input {
                 width: 100%;
                 padding: 10px;
@@ -86,6 +97,7 @@ def home():
                 font-size: 1em;
                 margin-bottom: 10px;
             }
+
             button {
                 margin-top: 8px;
                 padding: 10px 18px;
@@ -97,9 +109,11 @@ def home():
                 cursor: pointer;
                 transition: all 0.2s ease;
             }
+
             button:hover {
                 background-color: #0056b3;
             }
+
             pre {
                 text-align: left;
                 background: rgba(0,0,0,0.4);
@@ -109,6 +123,23 @@ def home():
                 color: #aef5ff;
                 margin-top: 15px;
             }
+
+            .success-message {
+                background: rgba(0,255,127,0.2);
+                padding: 10px;
+                border-radius: 8px;
+                color: #00ffb7;
+                font-weight: 600;
+                margin-top: 10px;
+                text-align: center;
+                opacity: 0;
+                transition: opacity 0.8s ease;
+            }
+
+            .success-message.show {
+                opacity: 1;
+            }
+
             footer {
                 margin-top: 30px;
                 font-size: 0.9em;
@@ -143,6 +174,8 @@ def home():
 
                     <button type="submit">Submit Student</button>
                 </form>
+
+                <div class="success-message" id="successMessage"></div>
                 <pre id="output2"></pre>
             </div>
 
@@ -173,6 +206,17 @@ def home():
                 });
                 const data = await res.json();
                 document.getElementById('output2').textContent = JSON.stringify(data, null, 2);
+
+                const messageBox = document.getElementById('successMessage');
+                if (data.message) {
+                    messageBox.innerHTML = `🎉 Welcome, <strong>${data.data.name}</strong>! You’ve been successfully added.`;
+                    messageBox.classList.add('show');
+
+                    // Auto fade out after 4 seconds
+                    setTimeout(() => {
+                        messageBox.classList.remove('show');
+                    }, 4000);
+                }
             }
         </script>
     </body>
@@ -197,7 +241,7 @@ def add_student():
     if not data or 'name' not in data:
         return jsonify({"error": "Missing 'name' field"}), 400
     return jsonify({
-        "message": "Student added successfully",
+        "message": f"Welcome, {data['name']}! You’ve been successfully added.",
         "data": data
     }), 201
 
