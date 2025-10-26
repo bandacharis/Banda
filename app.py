@@ -167,12 +167,34 @@ def welcome():
     </html>
     """)
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    students = session.get('students', [])
+    if 'students' not in session:
+        session['students'] = []
+
+    students = session['students']
+
+    # Handle deletion
+    if request.method == 'POST':
+        delete_index = int(request.form.get('delete_index'))
+        students.pop(delete_index)
+        session['students'] = students
+        return redirect(url_for('dashboard'))
+
     student_rows = ""
-    for s in students:
-        student_rows += f"<tr><td>{s['name']}</td><td>{s['year']}</td><td>{s['section']}</td></tr>"
+    for index, s in enumerate(students):
+        student_rows += f"""
+        <tr>
+            <td>{s['name']}</td>
+            <td>{s['year']}</td>
+            <td>{s['section']}</td>
+            <td>
+                <form method="POST" style="margin:0;">
+                    <input type="hidden" name="delete_index" value="{index}">
+                    <button type="submit" style="background:#ff4b5c;">Delete</button>
+                </form>
+            </td>
+        </tr>"""
 
     return render_template_string(f"""
     <!DOCTYPE html>
@@ -233,13 +255,17 @@ def dashboard():
                 transform: translateY(-3px);
                 box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             }}
+            form button {{
+                width: auto;
+                padding: 5px 10px;
+            }}
         </style>
     </head>
     <body>
         <h1>📋 Student Dashboard</h1>
         <table>
-            <tr><th>Name</th><th>Year</th><th>Section</th></tr>
-            {student_rows if student_rows else '<tr><td colspan="3">No students added yet</td></tr>'}
+            <tr><th>Name</th><th>Year</th><th>Section</th><th>Action</th></tr>
+            {student_rows if student_rows else '<tr><td colspan="4">No students added yet</td></tr>'}
         </table>
         <form action="/" >
             <button type="submit">⬅️ Back to Form</button>
